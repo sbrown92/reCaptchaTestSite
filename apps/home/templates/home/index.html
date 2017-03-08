@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<head>
+	<title>ReCaptcha Test Site</title>
+	<script src='https://www.google.com/recaptcha/api.js'></script>
+	
+</head>
+<body>
+	<p>Test site for trying to crack the reCaptcha test</p>
+
+	<form action="/" method="POST">
+		{% csrf_token %}
+		{{ form }}
+		<input type="submit" name="formSubmit">
+		<div class="g-recaptcha" data-sitekey="6LeyyBcUAAAAAJyhaWuBqVRgK7JrqjhTpgqdnZCs"></div>
+	</form>
+
+	<p>Value: {{ val }}
+</body>
+</html>
