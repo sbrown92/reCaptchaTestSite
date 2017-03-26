@@ -26,7 +26,7 @@ def homepage(request):
 		content = result.content
 
 
-		return render(request, 'home/index.html', {'form': form, 'val': content})
+		return render(request, 'home/result.html')
 		
 
 
