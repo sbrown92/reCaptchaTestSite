@@ -1,2 +1,8 @@
 # Python compiled files
 *.py[cod]
+
+# Django Secret Key
+keys.py
+
+# Audio Files
+data/
