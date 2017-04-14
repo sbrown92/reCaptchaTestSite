@@ -7,9 +7,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import os
 Base_Dir = os.path.dirname(os.path.abspath(__file__))
+import time 
 
 
-fireFoxPath = '/Users/Sam/Selenium/geckodriver'
+fireFoxPath = '/Users/maxwellmackoul/Selenium/geckodriver'
 prefs = FirefoxProfile()
 prefs.set_preference("browser.altClickSave", True)
 
@@ -25,7 +26,11 @@ br.switch_to_frame(iframe)
 wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'recaptcha-checkbox-checkmark'))).click()
 br.switch_to_default_content()
 br.switch_to_frame(iframe2)
+	
 wait.until(EC.presence_of_element_located((By.ID, 'recaptcha-audio-button')))
+time.sleep(5)
 wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-audio-button'))).click()
+
 wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'rc-audiochallenge-download-link')))
 wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'rc-audiochallenge-download-link'))).click()
+
