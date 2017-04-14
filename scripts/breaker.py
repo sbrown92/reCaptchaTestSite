@@ -1,24 +1,31 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import os
 Base_Dir = os.path.dirname(os.path.abspath(__file__))
-chromePath = '/Users/Sam/Selenium/chromedriver'
-chromeOptions = Options()
-
-chromeOptions.add_argument("--disable-extensions")
 
 
-br = webdriver.Chrome(chromePath, chrome_options=chromeOptions)
+fireFoxPath = '/Users/Sam/Selenium/geckodriver'
+prefs = FirefoxProfile()
+prefs.set_preference("browser.altClickSave", True)
+
+#br = webdriver.Chrome(chromePath)
+br = webdriver.Firefox(firefox_profile=prefs, executable_path=fireFoxPath)
+wait = WebDriverWait(br, 5)
 
 br.get('http://127.0.0.1:8000')
 br.find_elements_by_tag_name('iframe')
 iframe = br.find_elements_by_tag_name('iframe')[0]
-
+iframe2 = br.find_elements_by_tag_name('iframe')[1]
 br.switch_to_frame(iframe)
-br.find_element_by_class_name('recaptcha-checkbox-checkmark').click()
+wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'recaptcha-checkbox-checkmark'))).click()
 br.switch_to_default_content()
-br.switch_to_frame(br.find_elements_by_tag_name('iframe')[1])
-br.implicitly_wait(10)
-br.find_element_by_id('recaptcha-audio-button').click()
-br.find_elements_by_class_name('rc-audiochallenge-download-link')[0].click()
-#br.close()
+br.switch_to_frame(iframe2)
+wait.until(EC.presence_of_element_located((By.ID, 'recaptcha-audio-button')))
+wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-audio-button'))).click()
+wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'rc-audiochallenge-download-link')))
+wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'rc-audiochallenge-download-link'))).click()
