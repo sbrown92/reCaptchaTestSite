@@ -1,3 +1,10 @@
+import requests
+import httplib2
+import urllib2
+import urllib
+
+from bs4 import BeautifulSoup, SoupStrainer
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -6,8 +13,14 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import os
+import os.path
+
+
 Base_Dir = os.path.dirname(os.path.abspath(__file__))
 import time 
+
+
+fileName = raw_input('Enter in file name:')
 
 
 fireFoxPath = '/Users/maxwellmackoul/Selenium/geckodriver'
@@ -17,6 +30,7 @@ prefs.set_preference("browser.altClickSave", True)
 #br = webdriver.Chrome(chromePath)
 br = webdriver.Firefox(firefox_profile=prefs, executable_path=fireFoxPath)
 wait = WebDriverWait(br, 5)
+
 
 br.get('http://127.0.0.1:8000')
 br.find_elements_by_tag_name('iframe')
@@ -28,9 +42,21 @@ br.switch_to_default_content()
 br.switch_to_frame(iframe2)
 	
 wait.until(EC.presence_of_element_located((By.ID, 'recaptcha-audio-button')))
-time.sleep(5)
+time.sleep(1)
 wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-audio-button'))).click()
 
 wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'rc-audiochallenge-download-link')))
 wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'rc-audiochallenge-download-link'))).click()
+
+# gets the link fo the file
+audiolink = br.find_elements_by_xpath("//a[@href]")
+for link in audiolink:
+	#print link.get_attribute("href")
+	finalLink = link.get_attribute("href")
+	print finalLink
+
+urllib.urlretrieve(finalLink, '/Users/maxwellmackoul/Desktop/recap/testaudio/'+ fileName + ".mp3")
+
+
+
 
