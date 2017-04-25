@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.common.proxy import *
 from watson_developer_cloud import SpeechToTextV1
 
 
@@ -24,10 +25,32 @@ def scraper():
     for cell in  bs.find_all('td'):
         for anchor in cell.find_all('a'):
             proxies.append(anchor.text.split(':'))
-
     return proxies
 
 Base_Dir = os.path.dirname(os.path.abspath(__file__))
+WATSON_USER = 'd136174d-690a-4baa-911d-1e759af84124'
+WATSON_PASS = 'ODA1VLDPfRX4'
+
+
+fileName = "audio"
+sx = Transformer()
+proxyList = scraper()
+prefs = FirefoxProfile()
+server, host = proxyList.pop()
+prefs.set_preference('network.proxy.type', 1)
+prefs.set_preference('network.proxy.share_proxy_settings', True)
+prefs.set_preference('network.http.use-cache', False)
+prefs.set_preference('network.proxy.http', server)
+prefs.set_preference('network.proxy.http_port', int(host))
+prefs.set_preference('network.proxy.ssl', server)
+prefs.set_preference('network.proxy.ssl_port', int(host))
+prefs.set_preference('network.proxy.socks', server)
+prefs.set_preference('network.proxy.socks_port', int(host))
+
+#Webdriver settings.
+fireFoxPath = '/Users/sam/Selenium/geckodriver'
+br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs)
+
 
 
 #Watson API Settings.
@@ -37,15 +60,6 @@ speech_engine = SpeechToTextV1(
     x_watson_learning_opt_out=True
 )
 
-#Webdriver settings.
-fireFoxPath = '/Users/sam/Selenium/geckodriver'
-prefs = FirefoxProfile()
-prefs.set_preference("browser.altClickSave", True)
-
-fileName = "audio"
-sx = Transformer()
-proxyList = scraper()
-br = webdriver.Firefox(firefox_profile=prefs, executable_path=fireFoxPath)
 
 #Automate interactions with widget. 
 wait = WebDriverWait(br, 5)
