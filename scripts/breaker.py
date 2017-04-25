@@ -1,36 +1,37 @@
-import requests
-import httplib2
-import urllib2
 import urllib
-
+import sox
+import os.path
+import time
+import json
 from bs4 import BeautifulSoup, SoupStrainer
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
-import os
-import os.path
+from watson_developer_cloud import SpeechToTextV1
+
 
 
 Base_Dir = os.path.dirname(os.path.abspath(__file__))
-import time 
 
 
-fileName = raw_input('Enter in file name:')
+fileName = "audio"
+sx = sox.Transformer()
 
+speech_engine = SpeechToTextV1(
+    username=WATSON_USER,
+    password=WATSON_PASS,
+    x_watson_learning_opt_out=True
+)
 
-fireFoxPath = '/Users/maxwellmackoul/Selenium/geckodriver'
+fireFoxPath = '/Users/sam/Selenium/geckodriver'
 prefs = FirefoxProfile()
 prefs.set_preference("browser.altClickSave", True)
 
-#br = webdriver.Chrome(chromePath)
 br = webdriver.Firefox(firefox_profile=prefs, executable_path=fireFoxPath)
 wait = WebDriverWait(br, 5)
-
 
 br.get('http://127.0.0.1:8000')
 br.find_elements_by_tag_name('iframe')
@@ -55,8 +56,19 @@ for link in audiolink:
 	finalLink = link.get_attribute("href")
 	print finalLink
 
-urllib.urlretrieve(finalLink, '/Users/maxwellmackoul/Desktop/recap/testaudio/'+ fileName + ".mp3")
+#Download Audio File
+urllib.urlretrieve(finalLink, Base_Dir + "/" + fileName + ".mp3")
 
+#Convert file from .mp3 to .wav
+sx.build(fileName + ".mp3", fileName + ".wav")
 
+#Speech To Text
+with open(fileName + '.wav', 'rb') as sourceFile:
+    print(json.dumps(speech_engine.recognize(sourceFile,
+                                             content_type='audio/wav',
+                                             continuous=True,
+                                             model='en-UK_NarrowbandModel',
+                                             inactivity_timeout=5),
+                                             indent=2))
 
 
