@@ -6,3 +6,6 @@ keys.py
 
 # Audio Files
 data/
+
+# driver
+scripts/geckodriver
