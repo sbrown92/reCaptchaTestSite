@@ -132,8 +132,9 @@ def automatePage(fireFoxPath, prefs):
     numNums = []
 
     for result in results:
-        num = str(result['alternatives'][0]['transcript'])
-        num = num.strip()
+        word = str(result['alternatives'][0]['transcript'])
+        word = num.strip()
+        
         num = numMap.get(word, '?')
 
         numNums.append(str(num))
