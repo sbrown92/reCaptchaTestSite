@@ -52,6 +52,7 @@ def getInputs():
 
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
+    print "Scraping for proxies"
     source = urlopen('http://proxydb.net/?protocol=https&availability=75&response_time=10')
 
     bs = BeautifulSoup(source, "html.parser")
@@ -67,6 +68,7 @@ def scraper():
 def getProfile(pool):
     prefs = FirefoxProfile()
 
+    pool.pop()
     server, host = pool.pop()
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
@@ -110,6 +112,8 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         'I' : '5',
         'six': '6',
         'fix' : '6',
+        'thanks' : '6',
+        'see' : '6',
         'seven': '7',
         'eight': '8',
         'hey' : '8',
@@ -118,18 +122,19 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         'none' : '9'
     }
 
-    keywords = numMap.keys()
 
     #Automate interactions with widget.
     #Webdriver creation
     br = webdriver.Firefox(executable_path=fireFoxPath)
     wait = WebDriverWait(br, 5)
+    print "Loading page " + address
     br.get(address)
 
     ####################
     ### Fill in Form ###
     ####################
 
+    print "Filling out Form"
     for input in inputList:
         br.find_element_by_id(input[0]).send_keys(input[1])
 
@@ -137,6 +142,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     ########################
     ### reCaptcha Widget ###
     ########################
+    print "Finding reCaptcha Widget"
     wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'iframe')))
     br.find_elements_by_tag_name('iframe')
     iframe = br.find_elements_by_tag_name('iframe')[0]
@@ -154,45 +160,49 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     ###########################
     ### download audio file ###
     ###########################
+    print "Downloading Audio File"
     audiolink = br.find_elements_by_xpath("//a[@href]")
     for link in audiolink:
-        print link.get_attribute("href")
         finalLink = link.get_attribute("href")
-        print finalLink
     urlretrieve(finalLink, BASE_DIR + "/" + fileName + ".mp3")
 
     ######################
     ### Speech to Text ###
     ######################
+    print "Converting Audio File"
     sx.build(fileName + ".mp3", fileName + ".wav")
 
+    print "Sending to API..."
     with open(fileName + '.wav', 'rb') as sourceFile:
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
                                        model='en-US_NarrowbandModel',
-                                       keywords=keywords,
-                                       keywords_threshold=0.100,
                                        inactivity_timeout=5)
-
-    print json.dumps(data, indent=2)
+    print "Parsing Results..."
     results = data['results']
-    numNums = []
+    answer = ""
 
     for result in results:
         word = str(result['alternatives'][0]['transcript'])
         word = word.strip()
         
         num = numMap.get(word, '?')
-        numNums.append(str(num))
+        answer += num
 
-    answer = ''.join(numNums)
 
     print "Answer - " + answer
+    sleep(15)
+    for c in answer:
+        br.find_element_by_id('audio-response').send_keys(c)
+        sleep(1)
 
-    br.find_element_by_id('audio-response').send_keys(answer + Keys.ENTER)
 
-
-
+    sleep(2)
+    wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-verify-button')))
+    br.find_element_by_id('recaptcha-verify-button').click()
+    sleep(3)
+    br.close()
+    br.quit()
 
 #######################################
 ####                               ####
@@ -203,9 +213,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 def main():
     proxyPool = scraper()
     prefs = getProfile(proxyPool)
-    #urlAddr, inputs = getInputs()
-    urlAddr = 'http://127.0.0.1:8000'
-    inputs = list()
+    urlAddr, inputs = getInputs()
     automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
 
 
