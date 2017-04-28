@@ -136,7 +136,6 @@ def automatePage(fireFoxPath, prefs):
         word = num.strip()
         
         num = numMap.get(word, '?')
-
         numNums.append(str(num))
 
     answer = ''.join(numNums)
