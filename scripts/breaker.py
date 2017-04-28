@@ -10,11 +10,12 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
 
-from keys import WATSON_USER, WATSON_PASS
+#from keys import WATSON_USER, WATSON_PASS
 
 
 #######################################
@@ -51,7 +52,7 @@ def getInputs():
 
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
-    source = urlopen('http://proxydb.net/?protocol=https&country=US&availability=75&response_time=10')
+    source = urlopen('http://proxydb.net/?protocol=https&availability=75&response_time=10')
 
     bs = BeautifulSoup(source, "html.parser")
     proxies = list()
@@ -66,7 +67,6 @@ def scraper():
 def getProfile(pool):
     prefs = FirefoxProfile()
 
-    pool.pop()
     server, host = pool.pop()
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
@@ -95,21 +95,34 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     numMap = {
         'zero': '0',
         'one': '1',
+        'worn' : '1',
         'two': '2',
+        'to': '2',
+        'who' : '2',
+        'do' : '2',
         'three': '3',
         'four': '4',
+        'for' : '4',
+        'hello' : '4',
         'five': '5',
+        'by' : '5',
+        'hi' : '5',
+        'I' : '5',
         'six': '6',
+        'fix' : '6',
         'seven': '7',
         'eight': '8',
+        'hey' : '8',
+        'a' : '8',
         'nine': '9',
+        'none' : '9'
     }
 
     keywords = numMap.keys()
 
     #Automate interactions with widget.
     #Webdriver creation
-    br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs,)
+    br = webdriver.Firefox(executable_path=fireFoxPath)
     wait = WebDriverWait(br, 5)
     br.get(address)
 
@@ -124,6 +137,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     ########################
     ### reCaptcha Widget ###
     ########################
+    wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, 'iframe')))
     br.find_elements_by_tag_name('iframe')
     iframe = br.find_elements_by_tag_name('iframe')[0]
     iframe2 = br.find_elements_by_tag_name('iframe')[1]
@@ -155,21 +169,27 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     with open(fileName + '.wav', 'rb') as sourceFile:
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
-                                       model='en-UK_NarrowbandModel',
-                                       inactivity_timeout=5, keywords=keywords,
-                                       keywords_threshold=.25)
+                                       model='en-US_NarrowbandModel',
+                                       keywords=keywords,
+                                       keywords_threshold=0.100,
+                                       inactivity_timeout=5)
 
+    print json.dumps(data, indent=2)
     results = data['results']
     numNums = []
 
     for result in results:
         word = str(result['alternatives'][0]['transcript'])
-        word = num.strip()
+        word = word.strip()
         
         num = numMap.get(word, '?')
         numNums.append(str(num))
 
     answer = ''.join(numNums)
+
+    print "Answer - " + answer
+
+    br.find_element_by_id('audio-response').send_keys(answer + Keys.ENTER)
 
 
 
@@ -183,11 +203,12 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 def main():
     proxyPool = scraper()
     prefs = getProfile(proxyPool)
-    urlAddr, inputs = getInputs()
+    #urlAddr, inputs = getInputs()
+    urlAddr = 'http://127.0.0.1:8000'
+    inputs = list()
     automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
 
 
 
 if __name__ == "__main__":
-    print "here"
     main()
