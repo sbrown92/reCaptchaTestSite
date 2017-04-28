@@ -26,12 +26,19 @@ def homepage(request):
 		}
 
 		result = requests.post(url, params=params)
+<<<<<<< HEAD
 		
 		content = result.content
 
+=======
+>>>>>>> ae0bc01d39069ba0252880bda0c6210db30da480
 
 		return render(request, 'home/result.html')
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ae0bc01d39069ba0252880bda0c6210db30da480
 
 	
