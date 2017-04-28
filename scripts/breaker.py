@@ -129,16 +129,13 @@ def automatePage(fireFoxPath, prefs):
                                        keywords_threshold=.25)
 
     results = data['results']
-    numStrings = []
     numNums = []
 
     for result in results:
         num = str(result['alternatives'][0]['transcript'])
         num = num.strip()
-        numStrings.append(num)
-
-    for word in numStrings:
         num = numMap.get(word, '?')
+
         numNums.append(str(num))
 
     answer = ''.join(numNums)
