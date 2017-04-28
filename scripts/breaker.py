@@ -113,10 +113,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     ####################
 
     for input in inputList:
-        br.find_element_by_id(input[0]).text = input[1]
-
-
-
+        br.find_element_by_id(input[0]).send_keys(input[1])
 
 
     ########################
