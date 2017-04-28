@@ -14,6 +14,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
 
+from keys import WATSON_USER, WATSON_PASS
+
 
 #######################################
 ####                               ####
@@ -89,18 +91,21 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         username=WATSON_USER,
         password=WATSON_PASS,
         x_watson_learning_opt_out=True)
-    keywords = [
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine"
-    ]
+
+    numMap = {
+        'zero': '0',
+        'one': '1',
+        'two': '2',
+        'three': '3',
+        'four': '4',
+        'five': '5',
+        'six': '6',
+        'seven': '7',
+        'eight': '8',
+        'nine': '9',
+    }
+
+    keywords = numMap.keys()
 
     #Automate interactions with widget.
     #Webdriver creation
@@ -151,14 +156,23 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     sx.build(fileName + ".mp3", fileName + ".wav")
 
     with open(fileName + '.wav', 'rb') as sourceFile:
-        print(json.dumps(speech_engine.recognize(sourceFile,
-                                     content_type='audio/wav',
-                                     continuous=True,
-                                     model='en-UK_NarrowbandModel',
-                                     inactivity_timeout=5,
-                                     keywords=keywords,
-                                     keywords_threshold=.25)))
+        data = speech_engine.recognize(sourceFile, content_type='audio/wav',
+                                       continuous=True,
+                                       model='en-UK_NarrowbandModel',
+                                       inactivity_timeout=5, keywords=keywords,
+                                       keywords_threshold=.25)
 
+    results = data['results']
+    numNums = []
+
+    for result in results:
+        word = str(result['alternatives'][0]['transcript'])
+        word = num.strip()
+        
+        num = numMap.get(word, '?')
+        numNums.append(str(num))
+
+    answer = ''.join(numNums)
 
 
 
@@ -168,6 +182,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 ####   Main Function               ####
 ####                               ####
 #######################################
+
 def main():
     proxyPool = scraper()
     prefs = getProfile(proxyPool)
