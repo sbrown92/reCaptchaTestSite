@@ -14,6 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
+from dejavu import Dejavu
 
 #from keys import WATSON_USER, WATSON_PASS
 
@@ -83,11 +84,7 @@ def getProfile(pool):
     return prefs
 
 
-def automatePage(fireFoxPath, prefs, address, inputList):
-
-    fileName = "audio"
-    sx = Transformer()
-
+def getAnswer(fileName):
     # Watson API Settings.
     speech_engine = SpeechToTextV1(
         username=WATSON_USER,
@@ -97,30 +94,57 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     numMap = {
         'zero': '0',
         'one': '1',
-        'worn' : '1',
+        'worn': '1',
         'two': '2',
         'to': '2',
-        'who' : '2',
-        'do' : '2',
+        'who': '2',
+        'do': '2',
         'three': '3',
         'four': '4',
-        'for' : '4',
-        'hello' : '4',
+        'for': '4',
+        'hello': '4',
         'five': '5',
-        'by' : '5',
-        'hi' : '5',
-        'I' : '5',
+        'by': '5',
+        'hi': '5',
+        'I': '5',
         'six': '6',
-        'fix' : '6',
-        'thanks' : '6',
-        'see' : '6',
+        'fix': '6',
+        'thanks': '6',
+        'see': '6',
         'seven': '7',
         'eight': '8',
-        'hey' : '8',
-        'a' : '8',
+        'hey': '8',
+        'a': '8',
         'nine': '9',
-        'none' : '9'
+        'none': '9'
     }
+
+    print "Sending to API..."
+    with open(fileName + '.wav', 'rb') as sourceFile:
+        data = speech_engine.recognize(sourceFile, content_type='audio/wav',
+                                       continuous=True,
+                                       model='en-US_NarrowbandModel',
+                                       inactivity_timeout=5)
+    print "Parsing Results..."
+    results = data['results']
+    answer = ""
+
+    for result in results:
+        word = str(result['alternatives'][0]['transcript'])
+        word = word.strip()
+
+        num = numMap.get(word, '?')
+        answer += num
+
+
+    return answer
+
+
+def automatePage(fireFoxPath, prefs, address, inputList):
+
+    fileName = "audio"
+    sx = Transformer()
+
 
 
     #Automate interactions with widget.
@@ -166,30 +190,20 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         finalLink = link.get_attribute("href")
     urlretrieve(finalLink, BASE_DIR + "/" + fileName + ".mp3")
 
-    ######################
-    ### Speech to Text ###
-    ######################
+
+
+
+    ##########################
+    ### Convert Audio File ###
+    ##########################
     print "Converting Audio File"
     sx.build(fileName + ".mp3", fileName + ".wav")
 
-    print "Sending to API..."
-    with open(fileName + '.wav', 'rb') as sourceFile:
-        data = speech_engine.recognize(sourceFile, content_type='audio/wav',
-                                       continuous=True,
-                                       model='en-US_NarrowbandModel',
-                                       inactivity_timeout=5)
-    print "Parsing Results..."
-    results = data['results']
-    answer = ""
 
-    for result in results:
-        word = str(result['alternatives'][0]['transcript'])
-        word = word.strip()
-        
-        num = numMap.get(word, '?')
-        answer += num
-
-
+    answer = getAnswer(fileName)
+    ##########################
+    ### Parse API Output   ###
+    ##########################
     print "Answer - " + answer
     sleep(15)
     for c in answer:
