@@ -15,30 +15,9 @@ def homepage(request):
 		value = "Not Sent!"
 		return render(request, 'home/index.html', {'form': form, 'val': value, 'count': counter})
 	elif request.method == 'POST':
-		form = TestForm() 
-		data = request.POST
-		## gets the captcha response 
-		captcha_rs = data.get('g-recaptcha-response')
-		url = 'https://www.google.com/recaptcha/api/siteverify'
-		params = {
-			'secret': '6LeyyBcUAAAAAPh-4BiU6iac2nhF_jJV3QGUX1_9',
-			'response': captcha_rs
-		}
 
-		result = requests.post(url, params=params)
-<<<<<<< HEAD
-		
-		content = result.content
-
-=======
->>>>>>> ae0bc01d39069ba0252880bda0c6210db30da480
 
 		return render(request, 'home/result.html')
 
-
-<<<<<<< HEAD
-=======
-
->>>>>>> ae0bc01d39069ba0252880bda0c6210db30da480
 
 	
