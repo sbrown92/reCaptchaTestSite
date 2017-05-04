@@ -14,7 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
-from dejavu import Dejavu
+#from dejavu import Dejavu
 
 #from keys import WATSON_USER, WATSON_PASS
 
@@ -27,8 +27,8 @@ from dejavu import Dejavu
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
-WATSON_USER = 'd136174d-690a-4baa-911d-1e759af84124'
-WATSON_PASS = 'ODA1VLDPfRX4'
+WATSON_USER = 'dfbeaa4a-9766-45ff-9eb3-a5b9067dc9ad'
+WATSON_PASS = 'mc1HvcXKu4TI'
 
 
 #######################################
@@ -198,7 +198,6 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     ##########################
     print "Converting Audio File"
     sx.build(fileName + ".mp3", fileName + ".wav")
-
 
     answer = getAnswer(fileName)
     ##########################
