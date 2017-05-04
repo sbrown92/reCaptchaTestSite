@@ -26,8 +26,8 @@ from watson_developer_cloud import SpeechToTextV1
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
-WATSON_USER = 'd136174d-690a-4baa-911d-1e759af84124'
-WATSON_PASS = 'ODA1VLDPfRX4'
+WATSON_USER = 'dfbeaa4a-9766-45ff-9eb3-a5b9067dc9ad'
+WATSON_PASS = 'mc1HvcXKu4TI'
 
 
 #######################################
@@ -53,7 +53,7 @@ def getInputs():
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
     print "Scraping for proxies"
-    source = urlopen('http://proxydb.net/?protocol=https&availability=75&response_time=10')
+    source = urlopen('http://www.proxydb.net/?protocol=https&country=US&availability=75&response_time=10')
 
     bs = BeautifulSoup(source, "html.parser")
     proxies = list()
@@ -67,7 +67,7 @@ def scraper():
 ### Set the web browser's proxy settings.
 def getProfile(pool):
     prefs = FirefoxProfile()
-
+    pool.pop()
     pool.pop()
     server, host = pool.pop()
     prefs.set_preference('network.proxy.type', 1)
@@ -125,8 +125,8 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 
     #Automate interactions with widget.
     #Webdriver creation
-    br = webdriver.Firefox(executable_path=fireFoxPath)
-    wait = WebDriverWait(br, 5)
+    br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs)
+    wait = WebDriverWait(br, 15)
     print "Loading page " + address
     br.get(address)
 
@@ -177,7 +177,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
                                        model='en-US_NarrowbandModel',
-                                       inactivity_timeout=5)
+                                       inactivity_timeout=15)
     print "Parsing Results..."
     results = data['results']
     answer = ""
@@ -193,6 +193,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     print "Answer - " + answer
     sleep(15)
     for c in answer:
+        print type(c)
         br.find_element_by_id('audio-response').send_keys(c)
         sleep(1)
 
