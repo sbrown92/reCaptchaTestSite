@@ -3,18 +3,16 @@ import sys
 import json
 
 from bs4 import BeautifulSoup
-from sox import Transformer
+from sox import Transformer as sx
 from urllib2 import urlopen
 from urllib import urlretrieve
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
-from dejavu import Dejavu
 
 from keys import WATSON_USER, WATSON_PASS
 
@@ -90,8 +88,6 @@ def getAnswer(fileName):
         password=WATSON_PASS,
         x_watson_learning_opt_out=True)
 
-    sx = Transformer()
-
     numMap = {
         'zero': '0',
         'one': '1',
@@ -121,16 +117,10 @@ def getAnswer(fileName):
     }
 
 
-    ##########################
-    ### Convert Audio File ###
-    ##########################
-    print "Converting Audio File"
-    sx.build(fileName + ".mp3", fileName + ".wav")
-
 
 
     print "Sending to API..."
-    with open(fileName + '.wav', 'rb') as sourceFile:
+    with open(fileName, 'rb') as sourceFile:
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
                                        model='en-US_NarrowbandModel',
@@ -218,6 +208,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         br.close()
         br.quit()
 
+
 #######################################
 ####                               ####
 ####   Main Function               ####
@@ -230,6 +221,13 @@ def main():
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
     automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+    ##########################
+    ### Convert Audio File ###
+    ##########################
+    print "Converting Audio File"
+    sx.build(fileName + ".mp3", fileName + ".wav")
+
+
     answer = getAnswer(fileName)
 
 
