@@ -1,0 +1,3 @@
+[submodule "scripts/dejavu"]
+     path = scripts/dejavu
+     url = git://github.com/worldveil/dejavu.git
