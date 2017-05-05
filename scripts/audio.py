@@ -23,6 +23,9 @@ def splitFile(fileName):
     #   - Loops through entire file, so can do whole captcha message in one go!
     sx.sox(args)
 
+
+
+def main():
     # Creates Watson Speech to Text Object
     speech_engine = SpeechToTextV1(username=WATSON_USER,
                                    password=WATSON_PASS,
