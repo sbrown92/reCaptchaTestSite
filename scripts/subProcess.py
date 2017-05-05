@@ -21,15 +21,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
 
-from breaker import getInputs
-from breaker import scraper
-from breaker import getProfile 
+from breaker import getInputs, scraper, getProfile, automatePage, WATSON_USER, WATSON_PASS
 
 from dejavu import Dejavu
 from dejavu.recognize import FileRecognizer
 import glob
-
-from keys import WATSON_USER, WATSON_PASS
+#from keys import WATSON_USER, WATSON_PASS
 
 #######################################
 ####                               ####
@@ -140,14 +137,6 @@ def split_finger_rename_delete(sFile):
 
     djv = Dejavu(config)
 
-    fileName = sFile
-
-    args = [fileName, 'out.wav', 'silence',
-                    '1', '0.1', '0.1',
-                    '1', '0.1', '0.1',
-                    ': newfile', ': restart']
-
-
     for i in range(0, 10):
         djv.fingerprint_directory("soundfiles/" + str(i) + "/", [".wav"], 5)
 
@@ -181,4 +170,5 @@ def main():
 
 
 
-
+if __name__ == "__main__":
+    main()
