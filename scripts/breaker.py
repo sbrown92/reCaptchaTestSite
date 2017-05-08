@@ -1,6 +1,10 @@
 import os.path
 import sys
 import json
+import requests
+from StringIO import StringIO
+import re
+import random
 
 from bs4 import BeautifulSoup
 from sox import Transformer
@@ -15,7 +19,6 @@ from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
 
 from keys import WATSON_USER, WATSON_PASS
-
 
 #######################################
 ####                               ####
@@ -49,24 +52,51 @@ def getInputs():
 
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
+    proxies = []
+
     print "Scraping for proxies"
-    source = urlopen('http://www.proxydb.net/?protocol=https&country=US&availability=75&response_time=10')
+    response = requests.get('http://spys.me/proxy.txt')
+    response.raise_for_status()
 
-    bs = BeautifulSoup(source, "html.parser")
-    proxies = list()
+    # Prep text file to be read
+    f = response.text
+    text = StringIO(f)
 
-    for cell in  bs.find_all('td'):
-        for anchor in cell.find_all('a'):
-            proxies.append(anchor.text.split(':'))
+    # Regular Expressions to find data from text file
+    proxyPattern = r'\d*.\d*.\d*.\d*:\d*'
+    countryPattern = r'\D{2}-'
+
+    for line in text:
+        # Get IP/Host information
+        address = re.match(proxyPattern, line)
+
+        if address:
+            server, host = address.group().split(':')
+
+            # Get country information
+            country = re.search(countryPattern, line)
+
+            if 'US' in country.group():
+                # Check if Google Passed
+                if '+' in line:
+                    print('{} checks out as OK'.format(line))
+                    pack = (server, host)
+                    proxies.append(pack)
+
+    text.close()
+
+    print('Got {} workable proxies'.format(len(proxies)))
     return proxies
 
 
 ### Set the web browser's proxy settings.
 def getProfile(pool):
     prefs = FirefoxProfile()
-    pool.pop()
-    pool.pop()
+    random.shuffle(pool)
+
     server, host = pool.pop()
+    print('Server: {0}\nHost: {1}'.format(server, host))
+
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
@@ -196,7 +226,6 @@ def submitAnswer(br, answer):
     print "Answer - " + answer
     sleep(15)
     for c in answer:
-        print type(c)
         br.find_element_by_id('audio-response').send_keys(c)
         sleep(1)
 
@@ -222,17 +251,16 @@ def main():
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
     browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+
     ##########################
     ### Convert Audio File ###
     ##########################
     print "Converting Audio File"
     sx.build(fileName + ".mp3", fileName + ".wav")
 
-
     answer = getAnswer(fileName)
 
     submitAnswer(browser, answer)
-
 
 
 if __name__ == "__main__":
