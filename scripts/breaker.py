@@ -1,6 +1,9 @@
 import os.path
 import sys
 import json
+import requests
+from StringIO import StringIO
+import re
 
 from bs4 import BeautifulSoup
 from sox import Transformer
@@ -15,7 +18,6 @@ from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
 
 from keys import WATSON_USER, WATSON_PASS
-
 
 #######################################
 ####                               ####
@@ -52,33 +54,26 @@ def scraper():
     proxies = []
 
     print "Scraping for proxies"
-    source = urlopen('http://proxydb.net/?protocol=https&country=US&\
-                      availability=75&response_time=10')
+    response = requests.get('http://spys.me/proxy.txt')
+    response.raise_for_status()
 
-    bs = BeautifulSoup(source, "html.parser")
+    # Prep text file to be read
+    f = response.text
+    text = StringIO(f)
 
-    # Get the table of proxies from the HTML
-    table = bs.select('tbody tr')
+    proxyPattern = r'\d*.\d*.\d*.\d*:\d*'
 
-    # Parse through rows to find information
-    for row in table:
-        # Get Country information
-        country = row.find_all('img')[0].get('title')
+    for line in text:
+        # Get IP/Host information
+        address = re.match(proxyPattern, line)
 
-        # We only wants proxies from the US
-        if 'US' not in country:
-            print('Not working with {}...'.format(country))
-            continue
+        if address:
+            server, host = address.group().split(':')
+            print('Server:{0} | Host: {1}'.format(server, host))
+            pack = (server, host)
+            proxies.append(pack)
 
-        else:
-            # Get Proxy Information
-            data = row.find_all('a')[0].getText().split(':')
-            proxies.append(data)
-
-            print('-----Got a live one!-----\n\
-                   Country: {0}\n\
-                   Host: {1}\n\
-                   Port: {2}\n'.format(country, data[0], data[1]))
+    text.close()
 
     return proxies
 
@@ -245,12 +240,12 @@ def main():
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
     browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+
     ##########################
     ### Convert Audio File ###
     ##########################
     print "Converting Audio File"
     sx.build(fileName + ".mp3", fileName + ".wav")
-
 
     answer = getAnswer(fileName)
 
