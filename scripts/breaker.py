@@ -186,19 +186,13 @@ def automatePage(fireFoxPath, prefs, address, inputList):
         finalLink = link.get_attribute("href")
     urlretrieve(finalLink, BASE_DIR + "/audio.mp3")
 
-    ##########################
-    ### Convert Audio File ###
-    ##########################
-    print "Converting Audio File"
-    sx.build(fileName + ".mp3", fileName + ".wav")
-
-    answer = getAnswer(fileName)
     return br
 
 def submitAnswer(br, answer):
     ##########################
     ### Parse API Output   ###
     ##########################
+    wait = WebDriverWait(br, 15)
     print "Answer - " + answer
     sleep(15)
     for c in answer:
