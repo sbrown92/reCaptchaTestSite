@@ -4,6 +4,7 @@ import json
 import requests
 from StringIO import StringIO
 import re
+import random
 
 from bs4 import BeautifulSoup
 from sox import Transformer
@@ -91,10 +92,11 @@ def scraper():
 ### Set the web browser's proxy settings.
 def getProfile(pool):
     prefs = FirefoxProfile()
-    pool.pop()
-    pool.pop()
+    random.shuffle(pool)
+
     server, host = pool.pop()
     print('Server: {0}\nHost: {1}'.format(server, host))
+
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
