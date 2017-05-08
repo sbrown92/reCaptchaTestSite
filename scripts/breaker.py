@@ -27,7 +27,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
 
 
-
 #######################################
 ####                               ####
 ####   Functions                   ####
@@ -189,24 +188,23 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 
     return br
 
+def submitAnswer(br, answer):
+    ##########################
+    ### Parse API Output   ###
+    ##########################
+    print "Answer - " + answer
+    sleep(15)
+    for c in answer:
+        br.find_element_by_id('audio-response').send_keys(c)
+        sleep(1)
 
-    def submitAnswer(br, answer):
-        ##########################
-        ### Parse API Output   ###
-        ##########################
-        print "Answer - " + answer
-        sleep(15)
-        for c in answer:
-            br.find_element_by_id('audio-response').send_keys(c)
-            sleep(1)
 
-
-        sleep(2)
-        wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-verify-button')))
-        br.find_element_by_id('recaptcha-verify-button').click()
-        sleep(3)
-        br.close()
-        br.quit()
+    sleep(2)
+    wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-verify-button')))
+    br.find_element_by_id('recaptcha-verify-button').click()
+    sleep(3)
+    br.close()
+    br.quit()
 
 
 #######################################
