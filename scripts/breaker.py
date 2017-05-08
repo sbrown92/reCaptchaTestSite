@@ -10,13 +10,11 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from watson_developer_cloud import SpeechToTextV1
-#from dejavu import Dejavu
 
-#from keys import WATSON_USER, WATSON_PASS
+from keys import WATSON_USER, WATSON_PASS
 
 
 #######################################
@@ -27,8 +25,6 @@ from watson_developer_cloud import SpeechToTextV1
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
-WATSON_USER = 'dfbeaa4a-9766-45ff-9eb3-a5b9067dc9ad'
-WATSON_PASS = 'mc1HvcXKu4TI'
 
 
 #######################################
@@ -119,8 +115,11 @@ def getAnswer(fileName):
         'none': '9'
     }
 
+
+
+
     print "Sending to API..."
-    with open(fileName + '.wav', 'rb') as sourceFile:
+    with open(fileName + ".wav", 'rb') as sourceFile:
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
                                        model='en-US_NarrowbandModel',
@@ -141,9 +140,6 @@ def getAnswer(fileName):
 
 
 def automatePage(fireFoxPath, prefs, address, inputList):
-
-    fileName = "audio"
-    sx = Transformer()
 
 
 
@@ -188,8 +184,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     audiolink = br.find_elements_by_xpath("//a[@href]")
     for link in audiolink:
         finalLink = link.get_attribute("href")
-    urlretrieve(finalLink, BASE_DIR + "/" + fileName + ".mp3")
-
+    urlretrieve(finalLink, BASE_DIR + "/audio.mp3")
 
     ##########################
     ### Convert Audio File ###
@@ -198,6 +193,9 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     sx.build(fileName + ".mp3", fileName + ".wav")
 
     answer = getAnswer(fileName)
+    return br
+
+def submitAnswer(br, answer):
     ##########################
     ### Parse API Output   ###
     ##########################
@@ -216,6 +214,7 @@ def automatePage(fireFoxPath, prefs, address, inputList):
     br.close()
     br.quit()
 
+
 #######################################
 ####                               ####
 ####   Main Function               ####
@@ -223,10 +222,22 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 #######################################
 
 def main():
+    fileName = "audio"
+    sx = Transformer()
     proxyPool = scraper()
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
-    automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+    browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+    ##########################
+    ### Convert Audio File ###
+    ##########################
+    print "Converting Audio File"
+    sx.build(fileName + ".mp3", fileName + ".wav")
+
+
+    answer = getAnswer(fileName)
+
+    submitAnswer(browser, answer)
 
 
 
