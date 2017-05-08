@@ -49,18 +49,39 @@ def getInputs():
 
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
+    proxies = []
+
     print "Scraping for proxies"
     source = urlopen('http://proxydb.net/?protocol=https&country=US&\
                       availability=75&response_time=10')
 
     bs = BeautifulSoup(source, "html.parser")
-    proxies = list()
 
-    for cell in  bs.find_all('td'):
-        for anchor in cell.find_all('a'):
-            proxies.append(anchor.text.split(':'))
+    # Get the table of proxies from the HTML
+    table = bs.select('tbody tr')
+
+    # Parse through rows to find information
+    for row in table:
+        # Get Country information
+        country = row.find_all('img')[0].get('title')
+
+        # We only wants proxies from the US
+        if 'US' not in country:
+            print('Not working with {}...'.format(country))
+            continue
+
+        else:
+            # Get Proxy Information
+            data = row.find_all('a')[0].getText().split(':')
+            proxies.append(data)
+
+            print('-----Got a live one!-----\n\
+                   Country: {0}\n\
+                   Host: {1}\n\
+                   Port: {2}\n'.format(country, data[0], data[1]))
 
     return proxies
+
 
 ### Set the web browser's proxy settings.
 def getProfile(pool):
