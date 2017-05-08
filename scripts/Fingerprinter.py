@@ -1,38 +1,21 @@
-from dejavu.dejavu import Dejavu
-from dejavu.dejavu.recognize import FileRecognizer
-import glob
-from sox import core as sx
-
-config = {
-    "database": {
-        "host": "127.0.0.1",
-        "user": "root",
-        "passwd": "Ilikepie9",
-        "db": "dejavu",
-    },
-    "database_type": "mysql",
-    "fingerprint_limit": -1
-}
+from dejavu import Dejavu
+from keys import MYSQL_PASS, MYSQL_USER
 
 
-djv = Dejavu(config)
+def fingerprintFile(fileName):
+    config = {
+        "database": {
+            "host": "127.0.0.1",
+            "user": MYSQL_USER,
+            "passwd": MYSQL_PASS,
+            "db": "dejavu",
+        },
+        "database_type": "mysql",
+        "fingerprint_limit": -1
+    }
 
-fileName = "audio.mp3"
+    djv = Dejavu(config)
 
-args = [fileName, 'out.wav', 'silence',
-                '1', '0.1', '0.1',
-                '1', '0.1', '0.1',
-                ': newfile', ': restart']
-
-
-for i in range(0, 10):
-    djv.fingerprint_directory("example_files/" + str(i) + "/", [".wav"], 5)
-
-sx.sox(args)
-
-for piece in glob.glob("out*.wav"):
-    song = djv.recognize(FileRecognizer, piece)
-    print piece + " -- "
-    print song
+    djv.fingerprint_file(fileName + ".wav", fileName)
 
 
