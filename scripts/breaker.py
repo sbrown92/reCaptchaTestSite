@@ -192,6 +192,7 @@ def submitAnswer(br, answer):
     ##########################
     ### Parse API Output   ###
     ##########################
+    wait = WebDriverWait(br, 5)
     print "Answer - " + answer
     sleep(15)
     for c in answer:
