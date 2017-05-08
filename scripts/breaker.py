@@ -1,6 +1,7 @@
 import os.path
 import sys
 import json
+import threading
 
 from bs4 import BeautifulSoup
 from sox import Transformer
@@ -25,6 +26,26 @@ from keys import WATSON_USER, WATSON_PASS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
+
+
+
+class browserThread(threading.Thread):
+    def __init__(self, threadID, threadName, counter, url, inputs, proxyPool):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = threadName
+        self.counter = counter
+        self.prefs = getProfile(proxyPool)
+        self.addr = url
+        self.input_list = inputs
+        self.fileName = threadName
+
+    def run(self):
+        print "starting thread"
+        automatePage(prefs=self.prefs, address=self.addr, inputList=self.input_list, fileName=self.fileName)
+        print "End of thread"
+
+
 
 
 #######################################
@@ -139,26 +160,8 @@ def getAnswer(fileName):
     return answer
 
 
-def automatePage(fireFoxPath, prefs, address, inputList):
-
-
-
-    #Automate interactions with widget.
-    #Webdriver creation
-    br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs)
-    wait = WebDriverWait(br, 15)
-    print "Loading page " + address
-    br.get(address)
-
-    ####################
-    ### Fill in Form ###
-    ####################
-
-    print "Filling out Form"
-    for input in inputList:
-        br.find_element_by_id(input[0]).send_keys(input[1])
-
-
+def DownloadAudioFile(br):
+    wait = WebDriverWait(br, 5)
     ########################
     ### reCaptcha Widget ###
     ########################
@@ -209,6 +212,42 @@ def submitAnswer(br, answer):
     br.quit()
 
 
+def convertAudio(fileName):
+    sx = Transformer()
+    ##########################
+    ### Convert Audio File ###
+    ##########################
+    print "Converting Audio File"
+    sx.build(fileName + ".mp3", fileName + ".wav")
+
+    return
+
+
+def automatePage(prefs, address, inputList, fileName):
+    # Automate interactions with widget.
+    # Webdriver creation
+    br = webdriver.Firefox(executable_path=FIREFOX_PATH, firefox_profile=prefs)
+    fileName = "audio"
+    print "Loading page " + address
+    br.get(address)
+
+    ####################
+    ### Fill in Form ###
+    ####################
+
+    print "Filling out Form"
+    for input in inputList:
+        br.find_element_by_id(input[0]).send_keys(input[1])
+
+    DownloadAudioFile(br)
+    convertAudio(fileName)
+    answer = getAnswer(fileName)
+    submitAnswer(br, answer)
+
+
+
+
+
 #######################################
 ####                               ####
 ####   Main Function               ####
@@ -216,22 +255,22 @@ def submitAnswer(br, answer):
 #######################################
 
 def main():
-    fileName = "audio"
-    sx = Transformer()
+
     proxyPool = scraper()
+    url, list = getInputs()
+
+    thread1 = browserThread(1, 'thread-1', 1, url, list, proxyPool)
+
+    thread1.start()
+
+    print "exiting main"
+
+
+    '''
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
-    browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
-    ##########################
-    ### Convert Audio File ###
-    ##########################
-    print "Converting Audio File"
-    sx.build(fileName + ".mp3", fileName + ".wav")
-
-
-    answer = getAnswer(fileName)
-
-    submitAnswer(browser, answer)
+    automatePage(prefs=prefs, address=urlAddr, inputList=inputs)
+    '''
 
 
 
