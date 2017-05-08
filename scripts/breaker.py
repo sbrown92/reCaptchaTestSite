@@ -86,7 +86,7 @@ def scraper():
 ### Set the web browser's proxy settings.
 def getProfile(pool):
     prefs = FirefoxProfile()
-
+    pool.pop()
     pool.pop()
     server, host = pool.pop()
     print('Server: {0}\nHost: {1}'.format(server, host))
@@ -168,8 +168,8 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 
     #Automate interactions with widget.
     #Webdriver creation
-    br = webdriver.Firefox(executable_path=fireFoxPath)
-    wait = WebDriverWait(br, 5)
+    br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs)
+    wait = WebDriverWait(br, 15)
     print "Loading page " + address
     br.get(address)
 
@@ -215,9 +215,11 @@ def submitAnswer(br, answer):
     ##########################
     ### Parse API Output   ###
     ##########################
+    wait = WebDriverWait(br, 15)
     print "Answer - " + answer
     sleep(15)
     for c in answer:
+        print type(c)
         br.find_element_by_id('audio-response').send_keys(c)
         sleep(1)
 
