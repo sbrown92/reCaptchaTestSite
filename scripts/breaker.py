@@ -226,7 +226,6 @@ def submitAnswer(br, answer):
     print "Answer - " + answer
     sleep(15)
     for c in answer:
-        print type(c)
         br.find_element_by_id('audio-response').send_keys(c)
         sleep(1)
 
