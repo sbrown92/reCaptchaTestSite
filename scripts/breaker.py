@@ -3,7 +3,7 @@ import sys
 import json
 
 from bs4 import BeautifulSoup
-from sox import Transformer as sx
+from sox import Transformer
 from urllib2 import urlopen
 from urllib import urlretrieve
 from time import sleep
@@ -119,7 +119,7 @@ def getAnswer(fileName):
 
 
     print "Sending to API..."
-    with open(fileName, 'rb') as sourceFile:
+    with open(fileName + ".wav", 'rb') as sourceFile:
         data = speech_engine.recognize(sourceFile, content_type='audio/wav',
                                        continuous=True,
                                        model='en-US_NarrowbandModel',
@@ -215,10 +215,11 @@ def submitAnswer(br, answer):
 
 def main():
     fileName = "audio"
+    sx = Transformer()
     proxyPool = scraper()
     prefs = getProfile(proxyPool)
     urlAddr, inputs = getInputs()
-    automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
+    browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
     ##########################
     ### Convert Audio File ###
     ##########################
@@ -227,6 +228,8 @@ def main():
 
 
     answer = getAnswer(fileName)
+
+    submitAnswer(browser, answer)
 
 
 
