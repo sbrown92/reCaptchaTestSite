@@ -61,7 +61,9 @@ def scraper():
     f = response.text
     text = StringIO(f)
 
+    # Regular Expressions to find data from text file
     proxyPattern = r'\d*.\d*.\d*.\d*:\d*'
+    countryPattern = r'\D{2}-'
 
     for line in text:
         # Get IP/Host information
@@ -69,12 +71,20 @@ def scraper():
 
         if address:
             server, host = address.group().split(':')
-            print('Server:{0} | Host: {1}'.format(server, host))
-            pack = (server, host)
-            proxies.append(pack)
+
+            # Get country information
+            country = re.search(countryPattern, line)
+
+            if 'US' in country.group():
+                # Check if Google Passed
+                if '+' in line:
+                    print('{} checks out as OK'.format(line))
+                    pack = (server, host)
+                    proxies.append(pack)
 
     text.close()
 
+    print('Got {} workable proxies'.format(len(proxies)))
     return proxies
 
 
