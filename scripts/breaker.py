@@ -50,7 +50,8 @@ def getInputs():
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
     print "Scraping for proxies"
-    source = urlopen('http://proxydb.net/?protocol=https&availability=75&response_time=10')
+    source = urlopen('http://proxydb.net/?protocol=https&country=US&\
+                      availability=75&response_time=10')
 
     bs = BeautifulSoup(source, "html.parser")
     proxies = list()
@@ -58,8 +59,8 @@ def scraper():
     for cell in  bs.find_all('td'):
         for anchor in cell.find_all('a'):
             proxies.append(anchor.text.split(':'))
-    return proxies
 
+    return proxies
 
 ### Set the web browser's proxy settings.
 def getProfile(pool):
@@ -67,6 +68,7 @@ def getProfile(pool):
 
     pool.pop()
     server, host = pool.pop()
+    print('Server: {0}\nHost: {1}'.format(server, host))
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
@@ -230,7 +232,6 @@ def main():
     answer = getAnswer(fileName)
 
     submitAnswer(browser, answer)
-
 
 
 if __name__ == "__main__":
