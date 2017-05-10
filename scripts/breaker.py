@@ -39,7 +39,9 @@ FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
 #Get the URL and the form inputs from the user.
 def getInputs():
     inputs = list()
-    urlAddress = raw_input("Please enter the page's URL: ")
+    #urlAddress = raw_input("Please enter the page's URL: ")
+    urlAddress = 'http://127.0.0.1:8000/'
+    '''
     sys.stdout.write("Please enter the form's inputs (formatted ID:VALUE with spaces): ")
     sys.stdout.flush()
     line = sys.stdin.readline()
@@ -47,7 +49,7 @@ def getInputs():
         values = pair.split(":")
         #TODO: Check if the id has already been set or not.
         inputs.append((values[0], values[1]))
-
+    '''
     return urlAddress, inputs
 
 #Web Scraper to pull proxy server addresses and port numbers.
@@ -70,17 +72,17 @@ def scraper():
         # Get IP/Host information
         address = re.match(proxyPattern, line)
 
-        if address:
-            server, host = address.group().split(':')
+        # Get country information
+        country = re.search(countryPattern, line)
 
-            # Get country information
-            country = re.search(countryPattern, line)
+        if address:
+            addressPack = address.group().split(':')
 
             if 'US' in country.group():
                 # Check if Google Passed
                 if '+' in line:
                     print('{} checks out as OK'.format(line))
-                    pack = (server, host)
+                    pack = (addressPack)
                     proxies.append(pack)
 
     text.close()
