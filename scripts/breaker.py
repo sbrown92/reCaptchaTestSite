@@ -18,6 +18,18 @@ from watson_developer_cloud import SpeechToTextV1
 
 from keys import WATSON_USER, WATSON_PASS
 
+
+'''
+Class Definition for Proxy handler
+- Hold address and port
+- Bool variable that denotes if proxy has failed before
+'''
+class Proxy(object):
+    def __init__(self, address, port):
+        self.address = address
+        self.port = port
+        self.hasFailed = False
+
 #######################################
 ####                               ####
 ####   Constant Variables          ####
@@ -67,20 +79,18 @@ def scraper():
     countryPattern = r'\D{2}-'
 
     for line in text:
-        # Get IP/Host information
         address = re.match(proxyPattern, line)
-
-        # Get country information
         country = re.search(countryPattern, line)
 
         if address:
-            addressPack = address.group().split(':')
+            address, port = address.group().split(':')
 
             if 'US' in country.group():
                 # Check if Google Passed
                 if '+' in line:
-                    pack = (addressPack)
-                    proxies.append(pack)
+                    port = int(port)  # Since we typecast it when we set prefs
+                    proxy = Proxy(address=address, port=port)
+                    proxies.append(proxy)
 
     text.close()
 
@@ -93,18 +103,18 @@ def getProfile(pool):
     prefs = FirefoxProfile()
     random.shuffle(pool)
 
-    server, host = pool.pop()
-    print('Server: {0}\nHost: {1}'.format(server, host))
+    proxy = pool.pop()
+    print('Server: {0}\nPort: {1}'.format(proxy.address, proxy.port))
 
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
-    prefs.set_preference('network.proxy.http', server)
-    prefs.set_preference('network.proxy.http_port', int(host))
-    prefs.set_preference('network.proxy.ssl', server)
-    prefs.set_preference('network.proxy.ssl_port', int(host))
-    prefs.set_preference('network.proxy.socks', server)
-    prefs.set_preference('network.proxy.socks_port', int(host))
+    prefs.set_preference('network.proxy.http', proxy.address)
+    prefs.set_preference('network.proxy.http_port', proxy.port)
+    prefs.set_preference('network.proxy.ssl', proxy.address)
+    prefs.set_preference('network.proxy.ssl_port', proxy.port)
+    prefs.set_preference('network.proxy.socks', proxy.address)
+    prefs.set_preference('network.proxy.socks_port', proxy.port)
 
     return prefs
 
