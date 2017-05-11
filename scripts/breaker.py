@@ -1,4 +1,4 @@
-import os.path
+import os
 import sys
 import json
 import requests
@@ -6,9 +6,7 @@ from StringIO import StringIO
 import re
 import random
 
-from bs4 import BeautifulSoup
 from sox import Transformer
-from urllib2 import urlopen
 from urllib import urlretrieve
 from time import sleep
 from selenium import webdriver
@@ -81,7 +79,6 @@ def scraper():
             if 'US' in country.group():
                 # Check if Google Passed
                 if '+' in line:
-                    print('{} checks out as OK'.format(line))
                     pack = (addressPack)
                     proxies.append(pack)
 
