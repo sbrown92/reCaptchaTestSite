@@ -6,6 +6,12 @@ keys.py
 
 # Audio Files
 data/
+*.mp3
+*.wav
 
 # driver
 scripts/geckodriver
+
+# Log Files
+*.log
+*.txt
