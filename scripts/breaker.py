@@ -300,7 +300,7 @@ def main():
 
         wait = WebDriverWait(browser, 15)
         try:
-            wait.until(EC.presence_of_element_located((, "rc-audiochallenge-error-message")))
+            wait.until(EC.presence_of_element_located((By.XPATH, "//*[text()='Multiple correct solutions required - please solve more.']")))
             print "Fail."
         except:
             print "Pass."
