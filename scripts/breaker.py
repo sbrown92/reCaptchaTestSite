@@ -249,7 +249,7 @@ def submitAnswer(br, answer):
     ##########################
     wait = WebDriverWait(br, 15)
     print "Answer - " + answer
-    sleep(15)
+    sleep(10)
     for c in answer:
         br.find_element_by_id('audio-response').send_keys(c)
         sleep(1)
@@ -307,14 +307,13 @@ def main():
             numCorrect += 1
 
         try:
-            print "current correct - "+  str(numCorrect)
             browser.close()
-            browser.quit()
         except Exception as e:
             print "Error " + str(e)
 
+        print "current correct - " + str(numCorrect)
         trials += 1
 
-    print "Correct -- " + str(numCorrect)
+    print "Final Correct -- " + str(numCorrect)
 if __name__ == "__main__":
     main()
