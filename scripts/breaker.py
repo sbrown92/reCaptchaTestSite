@@ -300,8 +300,7 @@ def main():
             print "Converting Audio File"
             sx.build(fileName + ".mp3", fileName + ".wav")
 
-            #answer = getAnswer(fileName)
-            answer = '?'
+            answer = getAnswer(fileName)
 
             # Catch Google response for automated queries
             try:
@@ -314,6 +313,7 @@ def main():
                     if proxy == curProxy:
                         print('Marking {} as failed'.format(proxy.address))
                         proxy.hasFailed = True
+                        raise Exception("Proxy Was Recognized.")
 
         except Exception as e:
             print "Error: " + str(e)
@@ -330,7 +330,7 @@ def main():
             numCorrect += 1
 
         try:
-            browser.close()
+            browser.quit()
         except Exception as e:
             print "Error " + str(e)
 
