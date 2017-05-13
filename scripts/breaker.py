@@ -280,9 +280,13 @@ def main():
     numCorrect = 0
     trials = 1
     crashes = 0
+    MAX_TRIALS = 5
+
     proxyPool = scraper()
-    while trials <= 100:
+
+    while trials <= MAX_TRIALS:
         print "Trial Number: " + str(trials)
+
         try:
             fileName = "audio"
             sx = Transformer()
@@ -296,16 +300,20 @@ def main():
             print "Converting Audio File"
             sx.build(fileName + ".mp3", fileName + ".wav")
 
-            answer = getAnswer(fileName)
+            #answer = getAnswer(fileName)
+            answer = '?'
 
-            if answer == '?':
-                print "Proxy was denied"
+            # Catch Google response for automated queries
+            try:
+                assert(answer != '?')
+                submitAnswer(browser, answer)
+
+            except AssertionError:
+                # Mark Proxy as Failed
                 for proxy in proxyPool:
                     if proxy == curProxy:
+                        print('Marking {} as failed'.format(proxy.address))
                         proxy.hasFailed = True
-
-            else:
-                submitAnswer(browser, answer)
 
         except Exception as e:
             print "Error: " + str(e)
@@ -330,5 +338,7 @@ def main():
         trials += 1
 
     print "Final Correct -- " + str(numCorrect)
+
+
 if __name__ == "__main__":
     main()
