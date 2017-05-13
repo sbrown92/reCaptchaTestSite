@@ -300,8 +300,7 @@ def main():
             print "Converting Audio File"
             sx.build(fileName + ".mp3", fileName + ".wav")
 
-            #answer = getAnswer(fileName)
-            answer = '?'
+            answer = getAnswer(fileName)
 
             # Catch Google response for automated queries
             try:
