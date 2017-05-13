@@ -165,6 +165,15 @@ def getAnswer(fileName):
                                        inactivity_timeout=5)
     print "Parsing Results..."
     results = data['results']
+
+    # Write API response document to a text file for logging
+    with open('WatsonResponse.txt', 'w') as logFile:
+        i = 0
+        for result in results:
+            log = str(result['alternatives'])
+            logFile.write('{0}. {1}\n'.format(i, log))
+            i += 1
+
     answer = ""
 
     for result in results:
