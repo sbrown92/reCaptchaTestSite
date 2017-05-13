@@ -277,10 +277,12 @@ def submitAnswer(br, answer):
 #######################################
 
 def main():
-    numCorrect = 0;
-    trials = 1;
+    numCorrect = 0
+    trials = 1
+    crashes = 0
     proxyPool = scraper()
     while trials <= 100:
+        print "Trial Number: " + str(trials)
         try:
             fileName = "audio"
             sx = Transformer()
@@ -297,6 +299,7 @@ def main():
             answer = getAnswer(fileName)
 
             if answer == '?':
+                print "Proxy was denied"
                 for proxy in proxyPool:
                     if proxy == curProxy:
                         proxy.hasFailed = True
@@ -306,6 +309,9 @@ def main():
 
         except Exception as e:
             print "Error: " + str(e)
+            trials += 1
+            crashes += 1
+            continue
 
         wait = WebDriverWait(browser, 15)
         try:
