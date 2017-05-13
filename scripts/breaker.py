@@ -107,6 +107,13 @@ def getProfile(pool):
     proxy = pool.pop()
     print('Server: {0}\nPort: {1}'.format(proxy.address, proxy.port))
 
+    # Write proxy info to log file
+    with open('WatsonResponse.txt', 'a') as logFile:
+        time = dt.now().strftime('%b %d, %Y @ %H:%M:%S')
+        logFile.write('--------------Pass at {}--------------\n'.format(time))
+        logFile.write('Address: {0}\nPort: {1}\n'.format(proxy.address,
+                                                         proxy.port))
+
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
@@ -170,15 +177,12 @@ def getAnswer(fileName):
     # Write API response document to a text file for logging
     with open('WatsonResponse.txt', 'a') as logFile:
         i = 0
-        time = dt.now().strftime('%b %d, %Y @ %H:%M:%S')
-
-        logFile.write('--------------Pass at {}--------------\n'.format(time))
         for result in results:
             log = str(result['alternatives'])
             logFile.write('{0}. {1}\n'.format(i, log))
             i += 1
 
-        answer = ""
+        answer = ''
 
         for result in results:
             word = str(result['alternatives'][0]['transcript'])
