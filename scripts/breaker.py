@@ -5,6 +5,7 @@ import requests
 from StringIO import StringIO
 import re
 import random
+from datetime import datetime as dt
 
 from sox import Transformer
 from urllib import urlretrieve
@@ -167,22 +168,26 @@ def getAnswer(fileName):
     results = data['results']
 
     # Write API response document to a text file for logging
-    with open('WatsonResponse.txt', 'w') as logFile:
+    with open('WatsonResponse.txt', 'a') as logFile:
         i = 0
+        time = dt.now().strftime('%b %d, %Y @ %H:%M:%S')
+
+        logFile.write('--------------Pass at {}--------------\n'.format(time))
         for result in results:
             log = str(result['alternatives'])
             logFile.write('{0}. {1}\n'.format(i, log))
             i += 1
 
-    answer = ""
+        answer = ""
 
-    for result in results:
-        word = str(result['alternatives'][0]['transcript'])
-        word = word.strip()
+        for result in results:
+            word = str(result['alternatives'][0]['transcript'])
+            word = word.strip()
 
-        num = numMap.get(word, '?')
-        answer += num
+            num = numMap.get(word, '?')
+            answer += num
 
+        logFile.write('Answer: {}\n'.format(answer))
 
     return answer
 
