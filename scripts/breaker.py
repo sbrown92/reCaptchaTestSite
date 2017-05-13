@@ -1,10 +1,12 @@
-import os.path
+import os
 import sys
 import json
+import requests
+from StringIO import StringIO
+import re
+import random
 
-from bs4 import BeautifulSoup
 from sox import Transformer
-from urllib2 import urlopen
 from urllib import urlretrieve
 from time import sleep
 from selenium import webdriver
@@ -16,6 +18,20 @@ from watson_developer_cloud import SpeechToTextV1
 
 from keys import WATSON_USER, WATSON_PASS
 
+
+'''
+Class Definition for Proxy handler
+- Hold address and port
+- Bool variable that denotes if proxy has failed before
+'''
+class Proxy(object):
+    def __init__(self, address, port):
+        self.address = address
+        self.port = port
+        self.hasFailed = False
+
+    def __eq__(self, other):
+        return isinstance(other, type(self)) and self.address == other.address and self.port == other.port
 
 #######################################
 ####                               ####
@@ -36,7 +52,9 @@ FIREFOX_PATH = os.path.join(BASE_DIR, 'geckodriver')
 #Get the URL and the form inputs from the user.
 def getInputs():
     inputs = list()
-    urlAddress = raw_input("Please enter the page's URL: ")
+    #urlAddress = raw_input("Please enter the page's URL: ")
+    urlAddress = 'http://127.0.0.1:8000/'
+    '''
     sys.stdout.write("Please enter the form's inputs (formatted ID:VALUE with spaces): ")
     sys.stdout.flush()
     line = sys.stdin.readline()
@@ -44,40 +62,68 @@ def getInputs():
         values = pair.split(":")
         #TODO: Check if the id has already been set or not.
         inputs.append((values[0], values[1]))
-
+    '''
     return urlAddress, inputs
 
 #Web Scraper to pull proxy server addresses and port numbers.
 def scraper():
+    proxies = []
+
     print "Scraping for proxies"
-    source = urlopen('http://proxydb.net/?protocol=https&availability=75&response_time=10')
+    response = requests.get('http://spys.me/proxy.txt')
+    response.raise_for_status()
 
-    bs = BeautifulSoup(source, "html.parser")
-    proxies = list()
+    # Prep text file to be read
+    f = response.text
+    text = StringIO(f)
 
-    for cell in  bs.find_all('td'):
-        for anchor in cell.find_all('a'):
-            proxies.append(anchor.text.split(':'))
+    # Regular Expressions to find data from text file
+    proxyPattern = r'\d*.\d*.\d*.\d*:\d*'
+    countryPattern = r'\D{2}-'
+
+    for line in text:
+        address = re.match(proxyPattern, line)
+        country = re.search(countryPattern, line)
+
+        if address:
+            address, port = address.group().split(':')
+
+            if 'US' in country.group():
+                # Check if Google Passed
+                if '+' in line:
+                    port = int(port)  # Since we typecast it when we set prefs
+                    proxy = Proxy(address=address, port=port)
+                    proxies.append(proxy)
+
+    text.close()
+
+    print('Got {} workable proxies'.format(len(proxies)))
     return proxies
 
 
 ### Set the web browser's proxy settings.
 def getProfile(pool):
     prefs = FirefoxProfile()
+    random.shuffle(pool)
+    i = 0
+    proxy = pool[i]
+    while proxy.hasFailed:
+        i += 1
+        proxy = pool[i]
 
-    pool.pop()
-    server, host = pool.pop()
+    print('Server: {0}\nPort: {1}'.format(proxy.address, proxy.port))
+
     prefs.set_preference('network.proxy.type', 1)
     prefs.set_preference('network.proxy.share_proxy_settings', True)
     prefs.set_preference('network.http.use-cache', False)
-    prefs.set_preference('network.proxy.http', server)
-    prefs.set_preference('network.proxy.http_port', int(host))
-    prefs.set_preference('network.proxy.ssl', server)
-    prefs.set_preference('network.proxy.ssl_port', int(host))
-    prefs.set_preference('network.proxy.socks', server)
-    prefs.set_preference('network.proxy.socks_port', int(host))
+    prefs.set_preference('network.proxy.http', proxy.address)
+    prefs.set_preference('network.proxy.http_port', proxy.port)
+    prefs.set_preference('network.proxy.ssl', proxy.address)
+    prefs.set_preference('network.proxy.ssl_port', proxy.port)
+    prefs.set_preference('network.proxy.socks', proxy.address)
+    prefs.set_preference('network.proxy.socks_port', proxy.port)
 
-    return prefs
+    return prefs, proxy
 
 
 def getAnswer(fileName):
@@ -126,6 +172,15 @@ def getAnswer(fileName):
                                        inactivity_timeout=5)
     print "Parsing Results..."
     results = data['results']
+
+    # Write API response document to a text file for logging
+    with open('WatsonResponse.txt', 'w') as logFile:
+        i = 0
+        for result in results:
+            log = str(result['alternatives'])
+            logFile.write('{0}. {1}\n'.format(i, log))
+            i += 1
+
     answer = ""
 
     for result in results:
@@ -145,8 +200,8 @@ def automatePage(fireFoxPath, prefs, address, inputList):
 
     #Automate interactions with widget.
     #Webdriver creation
-    br = webdriver.Firefox(executable_path=fireFoxPath)
-    wait = WebDriverWait(br, 5)
+    br = webdriver.Firefox(executable_path=fireFoxPath, firefox_profile=prefs)
+    wait = WebDriverWait(br, 15)
     print "Loading page " + address
     br.get(address)
 
@@ -192,7 +247,7 @@ def submitAnswer(br, answer):
     ##########################
     ### Parse API Output   ###
     ##########################
-    wait = WebDriverWait(br, 5)
+    wait = WebDriverWait(br, 15)
     print "Answer - " + answer
     sleep(15)
     for c in answer:
@@ -204,8 +259,6 @@ def submitAnswer(br, answer):
     wait.until(EC.element_to_be_clickable((By.ID, 'recaptcha-verify-button')))
     br.find_element_by_id('recaptcha-verify-button').click()
     sleep(3)
-    br.close()
-    br.quit()
 
 
 #######################################
@@ -215,24 +268,53 @@ def submitAnswer(br, answer):
 #######################################
 
 def main():
-    fileName = "audio"
-    sx = Transformer()
+    numCorrect = 0;
+    trials = 1;
     proxyPool = scraper()
-    prefs = getProfile(proxyPool)
-    urlAddr, inputs = getInputs()
-    browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
-    ##########################
-    ### Convert Audio File ###
-    ##########################
-    print "Converting Audio File"
-    sx.build(fileName + ".mp3", fileName + ".wav")
+    while trials <= 100:
+        try:
+            fileName = "audio"
+            sx = Transformer()
+            prefs, curProxy = getProfile(proxyPool)
+            urlAddr, inputs = getInputs()
+            browser = automatePage(fireFoxPath=FIREFOX_PATH, prefs=prefs, address=urlAddr, inputList=inputs)
 
+            ##########################
+            ### Convert Audio File ###
+            ##########################
+            print "Converting Audio File"
+            sx.build(fileName + ".mp3", fileName + ".wav")
 
-    answer = getAnswer(fileName)
+            answer = getAnswer(fileName)
 
-    submitAnswer(browser, answer)
+            if answer == '?':
+                for proxy in proxyPool:
+                    if proxy == curProxy:
+                        proxy.hasFailed = True
 
+            else:
+                submitAnswer(browser, answer)
 
+        except Exception as e:
+            print "Error: " + str(e)
 
+        wait = WebDriverWait(browser, 15)
+        try:
+            wait.until(EC.presence_of_element_located((, "rc-audiochallenge-error-message")))
+            print "Fail."
+        except:
+            print "Pass."
+            numCorrect += 1
+
+        try:
+            print "current correct - "+  str(numCorrect)
+            browser.close()
+            browser.quit()
+        except Exception as e:
+            print "Error " + str(e)
+
+        trials += 1
+
+    print "Correct -- " + str(numCorrect)
 if __name__ == "__main__":
     main()
