@@ -321,16 +321,19 @@ def main():
             crashes += 1
             continue
 
-        wait = WebDriverWait(browser, 15)
+        wait = WebDriverWait(browser, 5)
+
         try:
             wait.until(EC.presence_of_element_located((By.XPATH, "//*[text()='Multiple correct solutions required - please solve more.']")))
             print "Fail."
+
         except:
             print "Pass."
             numCorrect += 1
 
         try:
             browser.quit()
+
         except Exception as e:
             print "Error " + str(e)
 
